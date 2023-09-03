@@ -9,7 +9,7 @@
     "test:watch": "ts-mocha --watch --watch-files 'src,test' test/**/*.test.ts"
   },
   "author": "Yannis Drosidis",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.3.5",
     "@types/mocha": "^10.0.1",
