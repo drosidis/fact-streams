@@ -31,32 +31,33 @@ describe('IdGenerator', () => {
     });
 
     it('should generate new IDs that start at one and are unique per store and per stream', async () => {
-        const generator = createSequenceGenerator(db);
+        const generator = createSequenceGenerator(db, collectionOne);
 
-        expect(await generator.nextStreamId(collectionOne)).to.eq(1);
-        expect(await generator.nextStreamId(collectionOne)).to.eq(2);
-        expect(await generator.nextStreamId(collectionOne)).to.eq(3);
+        expect(await generator.nextStreamId()).to.eq(1);
+        expect(await generator.nextStreamId()).to.eq(2);
+        expect(await generator.nextStreamId()).to.eq(3);
 
-        expect(await generator.nextFactId(collectionOne, 1)).to.eq(1);
-        expect(await generator.nextFactId(collectionOne, 1)).to.eq(2);
+        expect(await generator.nextFactId(1)).to.eq(1);
+        expect(await generator.nextFactId(1)).to.eq(2);
 
-        expect(await generator.nextFactId(collectionOne, 2)).to.eq(1);
+        expect(await generator.nextFactId(2)).to.eq(1);
     });
 
     it('should generate unique IDs that are unique per fact-store, but not across fact-stores', async () => {
-        const generator = createSequenceGenerator(db);
+        const generatorOne = createSequenceGenerator(db, collectionOne);
+        const generatorTwo = createSequenceGenerator(db, collectionTwo);
 
-        expect(await generator.nextStreamId(collectionOne)).to.eq(1);
-        expect(await generator.nextStreamId(collectionTwo)).to.eq(1);
+        expect(await generatorOne.nextStreamId()).to.eq(1);
+        expect(await generatorTwo.nextStreamId()).to.eq(1);
 
-        expect(await generator.nextStreamId(collectionOne)).to.eq(2);
-        expect(await generator.nextStreamId(collectionTwo)).to.eq(2);
+        expect(await generatorOne.nextStreamId()).to.eq(2);
+        expect(await generatorTwo.nextStreamId()).to.eq(2);
 
-        expect(await generator.nextFactId(collectionOne, 1)).to.eq(1);
-        expect(await generator.nextFactId(collectionTwo, 1)).to.eq(1);
+        expect(await generatorOne.nextFactId(1)).to.eq(1);
+        expect(await generatorTwo.nextFactId(1)).to.eq(1);
 
-        expect(await generator.nextFactId(collectionOne, 1)).to.eq(2);
-        expect(await generator.nextFactId(collectionTwo, 1)).to.eq(2);
+        expect(await generatorOne.nextFactId(1)).to.eq(2);
+        expect(await generatorTwo.nextFactId(1)).to.eq(2);
     });
 
     it('should create the correct DB index for the collection that holds ids when init() is called', async () => {
@@ -65,8 +66,8 @@ describe('IdGenerator', () => {
 
         expect(await collectionExists(collectionOne)).to.be.false;
 
-        const generator = createSequenceGenerator(db);
-        await generator.init(collectionOne);
+        const generator = createSequenceGenerator(db, collectionOne);
+        await generator.init();
 
         expect(await collectionExists(collectionOne)).to.be.true;
 
