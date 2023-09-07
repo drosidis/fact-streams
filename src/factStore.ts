@@ -1,15 +1,15 @@
 import { Db, FindCursor, WithId } from 'mongodb';
 
 import Fact from './Fact';
-import NEW from './NewId';
 import { createSequenceGenerator } from './SequenceGenerator';
-import { UnknownFact } from './UnknownFact';
+import { FactReducer, NEW, UnknownFact } from './types';
 
 export interface FactStore<F extends Fact<string, unknown, unknown>> {
   append: (fact: F) => Promise<F>; // Returns the fact that was actually inserted
   onAppend: (callback: (fact: F) => Promise<void>) => void;
-  find: (streamId: number) => Promise<FindCursor<WithId<F>>>;
-  findAll: () => Promise<FindCursor<WithId<F>>>;
+  find: (streamId: number) => AsyncGenerator<WithId<F>, void, unknown>;
+  findAll: () => AsyncGenerator<WithId<F>, void, unknown>;
+  createTransientView: <S>(reducer: FactReducer<S, F>, initialState: S | null) => (streamId: number) => Promise<S | null>;
   mongoDatabase: Db,
 }
 
@@ -51,20 +51,33 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     return factToSave;
   };
 
-  async function find(streamId: number) {
-    return mongoDatabase
-      .collection<F>(factStoreName)
-      .find({ streamId });
+  function onAppend(callback: (fact: F) => Promise<void>) {
+    onAppendListeners.push(callback);
   }
 
-  async function findAll() {
-    return mongoDatabase
+  async function* find(streamId: number) {
+    const cursor = await mongoDatabase
+      .collection<F>(factStoreName)
+      .find({ streamId });
+
+    yield* cursor;
+  }
+
+  async function* findAll(): AsyncGenerator<F> {
+    const cursor = await mongoDatabase
       .collection<F>(factStoreName)
       .find();
   }
 
-  function onAppend(callback: (fact: F) => Promise<void>) {
-    onAppendListeners.push(callback);
+  function createTransientView<S>(reducer: FactReducer<S, F>, initialState: S | null) {
+    return async function(streamId: number) {
+      const cursor = await find(streamId);
+      let state: S | null = initialState;
+      for await (const fact of cursor) {
+        state = reducer(state, fact);
+      }
+      return state;
+    }
   }
 
   return {
@@ -72,6 +85,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     onAppend,
     find,
     findAll,
+    createTransientView,
     mongoDatabase,
   };
 }
