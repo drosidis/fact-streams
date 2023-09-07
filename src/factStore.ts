@@ -24,15 +24,15 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
 
   const onAppendListeners: ((fact: F) => Promise<void>)[] = [];
 
-  const sequenceGenerator = createSequenceGenerator(mongoDatabase);
-  sequenceGenerator.init(`${factStoreName}_ids`);
+  const sequenceGenerator = createSequenceGenerator(mongoDatabase, `${factStoreName}_ids`);
+  sequenceGenerator.init();
 
   async function append(fact: F): Promise<F> {
     const streamId = fact.streamId === NEW
-      ? await sequenceGenerator.nextStreamId(`${factStoreName}_ids`)
+      ? await sequenceGenerator.nextStreamId()
       : fact.streamId;
 
-    const factId = await sequenceGenerator.nextFactId(`${factStoreName}_ids`, streamId);
+    const factId = await sequenceGenerator.nextFactId(streamId);
 
     const factToSave: F = {
       ...fact,
