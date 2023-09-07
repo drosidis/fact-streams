@@ -1,5 +1,4 @@
-import { NEW } from ".";
-import { UnknownFact } from "./UnknownFact";
+import { NEW, UnknownFact } from "./types";
 
 export default function createFact<F extends UnknownFact>(streamId: number, type: F['type'], data: F['data'], metadata: F['metadata']): F {
   return {

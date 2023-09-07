@@ -27,7 +27,7 @@ describe('factStore', () => {
     });
 
     describe('.findAll()', () => {
-        it.only('should return *all* the *sorted* facts in the store', async () => {
+        it('should return *all* the *sorted* facts in the store', async () => {
             const { store, penId, pencilId } = await createFixtures(db);
 
             const allFacts = await (await store.findAll()).toArray();
@@ -43,7 +43,7 @@ describe('factStore', () => {
     });
 
     describe('.find(streamId)', () => {
-        it.only('should return *all* the *sorted* facts for one stream', async () => {
+        it('should return *all* the *sorted* facts for one stream', async () => {
             const { store, pencilId } = await createFixtures(db);
 
             const allFacts = await (await store.find(pencilId)).toArray();

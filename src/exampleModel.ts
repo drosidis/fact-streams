@@ -71,6 +71,8 @@ async function run() {
         ...item,
         stock: item.stock - fact.data.quantity,
       };
+    } else {
+      throw new Error(`Unexpected event: ${fact.type}`);
     }
     return null;
   }
