@@ -56,7 +56,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     }
 
     return factToSave;
-  };
+  }
 
   function onAppend(callback: (fact: F) => Promise<void>) {
     onAppendListeners.push(callback);
