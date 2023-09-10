@@ -13,6 +13,7 @@ export interface PersistentView<S, F extends UnknownFact> {
 export interface FactStore<F extends UnknownFact> {
   append: (fact: F) => Promise<F>; // Returns the fact that was actually inserted
   onAppend: (callback: (fact: F) => Promise<void>) => void;
+  onBeforeAppend: (callback: (fact: F) => Promise<F>) => void;
   find: (streamId: number) => AsyncGenerator<WithId<F>, void, unknown>;
   findAll: () => AsyncGenerator<WithId<F>, void, unknown>;
   createTransientView: <S>(reducer: FactReducer<S, F>, initialState: S | null) => (streamId: number) => Promise<S | null>;
@@ -29,25 +30,54 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     name: factStoreName,
   } = options;
 
+  const onBeforeAppendListeners: ((fact: F) => Promise<F>)[] = [];
   const onAppendListeners: ((fact: F) => Promise<void>)[] = [];
 
   const sequenceGenerator = createSequenceGenerator(mongoDatabase, `${factStoreName}_ids`);
   sequenceGenerator.init();
 
+  // Ensure the collection exists and it has the required index
+  await mongoDatabase.createCollection(factStoreName);
+  await mongoDatabase.collection(factStoreName).createIndex({ streamId: 1, sequence: 1 }, { name: 'streamId_sequence', unique: true });
+
   async function append(fact: F): Promise<F> {
-    const streamId = fact.streamId === NEW
-      ? await sequenceGenerator.nextStreamId()
-      : fact.streamId;
+    // Find the latest sequence number for this stream
+    let newStreamId;
+    let newSequence;
 
-    const factId = await sequenceGenerator.nextFactId(streamId);
+    if (fact.streamId === NEW) {
+      newStreamId = await sequenceGenerator.nextStreamId();
+      newSequence = 1;
+    } else {
+      const lastFactInDb = await mongoDatabase
+        .collection<F>(factStoreName)
+        .find({ streamId: fact.streamId })
+        .sort({ sequence: -1 })
+        .limit(1)
+        .toArray();
 
-    const factToSave: F = {
+      newStreamId = fact.streamId;
+      newSequence = lastFactInDb.length === 0
+        ? 1
+        : lastFactInDb[0].sequence + 1;
+    }
+
+    // Create the Fact that will saved
+    let factToSave: F = {
       ...fact,
-      streamId,
-      sequence: factId,
+      streamId: newStreamId,
+      sequence: newSequence,
       time: new Date(),
     };
 
+    // Run all the validation functions, which might change the fact to be saved
+    for await (const callback of onBeforeAppendListeners) {
+      factToSave = await callback(factToSave);
+    }
+
+    // Optimistic insert
+    // TODO: wrap the MongoError with a FactStreams error on duplicates, otherwise throw as is
+    // TODO: if duplicate sequence, then try again (3 times?)
     await mongoDatabase.collection(factStoreName).insertOne(factToSave);
 
     // Call all the listeners
@@ -60,6 +90,10 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
 
   function onAppend(callback: (fact: F) => Promise<void>) {
     onAppendListeners.push(callback);
+  }
+
+  function onBeforeAppend(callback: (fact: F) => Promise<F>) {
+    onBeforeAppendListeners.push(callback);
   }
 
   async function* find(streamId: number) {
@@ -121,6 +155,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
   return {
     append,
     onAppend,
+    onBeforeAppend,
     find,
     findAll,
     createTransientView,
