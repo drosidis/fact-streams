@@ -1,15 +1,22 @@
-import { Db, FindCursor, WithId } from 'mongodb';
+import { Collection, Db, Document, WithId } from 'mongodb';
 
-import Fact from './Fact';
 import { createSequenceGenerator } from './SequenceGenerator';
 import { FactReducer, NEW, UnknownFact } from './types';
 
-export interface FactStore<F extends Fact<string, unknown, unknown>> {
+export interface PersistentView<S, F extends UnknownFact> {
+  collectionName: string;
+  idField: string;
+  reducer: FactReducer<S, F>;
+  initialState?: S | null;
+}
+
+export interface FactStore<F extends UnknownFact> {
   append: (fact: F) => Promise<F>; // Returns the fact that was actually inserted
   onAppend: (callback: (fact: F) => Promise<void>) => void;
   find: (streamId: number) => AsyncGenerator<WithId<F>, void, unknown>;
   findAll: () => AsyncGenerator<WithId<F>, void, unknown>;
   createTransientView: <S>(reducer: FactReducer<S, F>, initialState: S | null) => (streamId: number) => Promise<S | null>;
+  createPersistentView: <S extends Document>(view: PersistentView<S, F>) => Collection<S>;
   mongoDatabase: Db,
 }
 
@@ -67,9 +74,11 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     const cursor = await mongoDatabase
       .collection<F>(factStoreName)
       .find();
+
+    yield* cursor;
   }
 
-  function createTransientView<S>(reducer: FactReducer<S, F>, initialState: S | null) {
+  function createTransientView<S>(reducer: FactReducer<S, F>, initialState: S | null = null) {
     return async function(streamId: number) {
       const cursor = await find(streamId);
       let state: S | null = initialState;
@@ -80,12 +89,42 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     }
   }
 
+  function createPersistentView<S extends Document>(view: PersistentView<S, F>) {
+    const {
+      collectionName,
+      idField,
+      initialState = null,
+      reducer,
+    } = view;
+
+    onAppendListeners.push(async (latestFact) => {
+      const cursor = await find(latestFact.streamId);
+      let state: S | null = initialState;
+      for await (const fact of cursor) {
+        state = reducer(state, fact);
+      }
+
+      if (state === null) {
+        await mongoDatabase.collection(collectionName).deleteOne({ [idField]: latestFact.streamId });
+      } else {
+        await mongoDatabase.collection(collectionName).replaceOne(
+          { [idField]: latestFact.streamId },
+          state,
+          { upsert: true },
+        );
+      }
+    });
+
+    return mongoDatabase.collection<S>(collectionName);
+  }
+
   return {
     append,
     onAppend,
     find,
     findAll,
     createTransientView,
+    createPersistentView,
     mongoDatabase,
   };
 }

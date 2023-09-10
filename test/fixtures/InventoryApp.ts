@@ -23,13 +23,18 @@ export const alice: Who = { username: 'Alice' };
 export const bob: Who = { username: 'Bob' };
 export const charlie: Who = { username: 'Charlie' };
 
-// Set uo a scenario of 2 streams (representing inventory items) with a few facts each
+// Set up a scenario of 2 streams (representing inventory items) with a few facts each
 export async function createFixtures(db: FactStreamsDatabase) {
   // Create a FactStore instance
   const store = await db.createFactStore<InventoryFact>({
     name: 'unitTestInventoryFacts',
   });
 
+  return appendFacts(store);
+}
+
+// Set up a scenario of 2 streams (representing inventory items) with a few facts each
+export async function appendFacts(store: FactStore<InventoryFact>) {
   // Create two streams by inserting the first fact for each one
   const initPens = createFact<Init>(NEW, 'init', { name: 'Pen', description: 'For persistent writing' }, alice);
   const f1 = await store.append(initPens);
