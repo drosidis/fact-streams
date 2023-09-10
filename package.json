@@ -2,23 +2,27 @@
   "name": "fact-streams",
   "version": "0.1.0",
   "description": "An event-sourcing toolkit for Node and MongoDB",
+  "author": "Yannis Drosidis <yannis@drosidis.com>",
+  "license": "MIT",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
     "test": "ts-mocha test/**/*.test.ts",
-    "test:watch": "ts-mocha --watch --watch-files 'src,test' test/**/*.test.ts"
-  },
-  "author": "Yannis Drosidis",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/chai": "^4.3.5",
-    "@types/mocha": "^10.0.1",
-    "chai": "^4.3.8",
-    "mongodb-memory-server": "^8.15.1",
-    "ts-mocha": "^10.0.0",
-    "typescript": "^5.2.2"
+    "test:watch": "ts-mocha --watch --watch-files 'src,test' test/**/*.test.ts",
+    "eslint": "eslint src/**/*.ts test/**/*.ts"
   },
   "dependencies": {
     "mongodb": "^5.8.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "chai": "^4.3.8",
+    "eslint": "^8.49.0",
+    "mongodb-memory-server": "^8.15.1",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.2.2"
   }
 }
