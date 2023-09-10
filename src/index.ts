@@ -1,4 +1,4 @@
-export * from './database';
+export * from './connect';
 export * from './factStore';
 export { default as Fact } from './Fact';
 export { default as createFact } from './createFact';

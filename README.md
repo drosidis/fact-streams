@@ -44,7 +44,7 @@ First, we need to connect to our database.
 ```typescript
 import { connect } from 'fact-stream';
 
-const connection = await connect({
+const db = await connect({
   uri: 'mongodb://localhost:27017/',
   dbName: 'myExample',
 });

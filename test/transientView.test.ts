@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
 import { startMongoInstance, dbName } from './shared/mongodb';
-import { createDatabase, FactReducer, FactStreamsDatabase } from '../src';
+import { connect, FactReducer, FactStreamsDatabase } from '../src';
 
 import { InventoryFact, createFixtures } from './fixtures/InventoryApp';
 
@@ -15,7 +15,7 @@ describe('factStore.createTransientView()', () => {
     stop = mongoInstance.stop;
 
     // Create a FactStream database connection to mongod instance
-    db = await createDatabase({
+    db = await connect({
       uri: mongoInstance.uri,
       dbName,
     });
