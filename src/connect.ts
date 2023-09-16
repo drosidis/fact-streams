@@ -1,7 +1,7 @@
 import { Db, MongoClient } from 'mongodb';
 
-import { FactStore, createFactStore, CreateFactStoreOptions } from './factStore';
-import { UnknownFact } from './types';
+import { createFactStore, CreateFactStoreOptions } from './factStore';
+import { FactStore, UnknownFact } from './types';
 
 interface ConnectOptions {
   uri: string;

@@ -1,26 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Collection, Db, Document, MongoError, WithId } from 'mongodb';
+import { Db, Document, MongoError } from 'mongodb';
 
 import { createSequenceGenerator } from './SequenceGenerator';
-import { FactReducer, NEW, UnknownFact } from './types';
-
-export interface PersistentView<S, F extends UnknownFact> {
-  collectionName: string;
-  idField: string;
-  reducer: FactReducer<S, F>;
-  initialState?: S | null;
-}
-
-export interface FactStore<F extends UnknownFact> {
-  append: (fact: F) => Promise<F>; // Returns the fact that was actually inserted
-  onAppend: (callback: (fact: F) => Promise<void>) => void;
-  onBeforeAppend: (callback: (fact: F) => Promise<F>) => void;
-  find: (streamId: number) => AsyncGenerator<WithId<F>, void, unknown>;
-  findAll: () => AsyncGenerator<WithId<F>, void, unknown>;
-  createTransientView: <S>(reducer: FactReducer<S, F>, initialState: S | null) => (streamId: number) => Promise<S | null>;
-  createPersistentView: <S extends Document>(view: PersistentView<S, F>) => Collection<S>;
-  mongoDatabase: Db,
-}
+import { FactReducer, FactStore, NEW, PersistentView, UnknownFact } from './types';
 
 export interface CreateFactStoreOptions {
   name: string;
