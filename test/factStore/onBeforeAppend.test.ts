@@ -82,8 +82,8 @@ describe('factStore.onBeforeAppend()', () => {
     const allFactsInStore = await findAll(store.mongoDatabase, collectionName);
 
     expect(allFactsInStore).to.be.an('array').and.have.lengthOf(1);
-    expect(allFactsInStore[0].data).to.deep.eq({ name: 'X', description: 'Y' });
-    expect(allFactsInStore[0].metadata).to.deep.eq({ username: 'A new random username' });
+    expect(allFactsInStore?.[0]?.data).to.deep.eq({ name: 'X', description: 'Y' });
+    expect(allFactsInStore?.[0]?.metadata).to.deep.eq({ username: 'A new random username' });
   });
 
   xit('should fail gracefully when the callback throws an expected error', async () => {
