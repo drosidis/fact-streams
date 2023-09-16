@@ -4,11 +4,14 @@
   "description": "An event-sourcing toolkit for Node and MongoDB",
   "author": "Yannis Drosidis <yannis@drosidis.com>",
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.d.ts",
+  "types": "",
   "scripts": {
     "build": "tsc",
     "test": "ts-mocha test/**/*.test.ts",
     "test:watch": "ts-mocha --watch --watch-files 'src,test' test/**/*.test.ts",
+    "build:tsup": "tsup src/index.ts --format cjs,esm --dts",
     "eslint": "eslint src/**/*.ts test/**/*.ts"
   },
   "dependencies": {
@@ -23,6 +26,7 @@
     "eslint": "^8.49.0",
     "mongodb-memory-server": "^8.15.1",
     "ts-mocha": "^10.0.0",
+    "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   }
 }
