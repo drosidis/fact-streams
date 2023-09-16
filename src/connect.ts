@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 
 import { FactStore, createFactStore, CreateFactStoreOptions } from './factStore';
 import { UnknownFact } from './types';
@@ -10,6 +10,7 @@ interface ConnectOptions {
 
 export interface FactStreamsDatabase {
   createFactStore: <T extends UnknownFact>(options: CreateFactStoreOptions) => Promise<FactStore<T>>;
+  mongoDatabase: Db,
   close: () => Promise<void>;
 }
 
@@ -22,6 +23,7 @@ export async function connect(options: ConnectOptions): Promise<FactStreamsDatab
 
   return {
     createFactStore: (options: CreateFactStoreOptions) => createFactStore(mongoDatabase, options),
+    mongoDatabase,
     close: () => connection.close(),
   };
 }

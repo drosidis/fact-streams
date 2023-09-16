@@ -12,6 +12,7 @@ async function toArray<T>(gen: AsyncIterable<T>): Promise<T[]> {
   }
   return out;
 }
+
 describe('factStore', () => {
   let db: FactStreamsDatabase;
   let stop: () => void;

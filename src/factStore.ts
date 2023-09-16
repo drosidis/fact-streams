@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Collection, Db, Document, WithId } from 'mongodb';
+import { Collection, Db, Document, MongoError, WithId } from 'mongodb';
 
 import { createSequenceGenerator } from './SequenceGenerator';
 import { FactReducer, NEW, UnknownFact } from './types';
@@ -38,7 +38,15 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
   sequenceGenerator.init();
 
   // Ensure the collection exists and it has the required index
-  await mongoDatabase.createCollection(factStoreName);
+  try {
+    await mongoDatabase.createCollection(factStoreName);
+  } catch (error) {
+    if (error instanceof MongoError && error.message.startsWith('Collection already exists')) {
+      // No-op: the collection already exists
+    } else {
+      throw error;
+    }
+  }
   await mongoDatabase.collection(factStoreName).createIndex({ streamId: 1, sequence: 1 }, { name: 'streamId_sequence', unique: true });
 
   async function append(fact: F): Promise<F> {

@@ -34,11 +34,29 @@ describe('createFactStore()', () => {
     expect(await collectionExists(store.mongoDatabase, collectionName)).to.be.true;
 
     // Check that we have the index we need
-    const allIndexes = await store.mongoDatabase.collection(collectionName).indexes()
+    const allIndexes = await store.mongoDatabase.collection(collectionName).indexes();
     const index = await allIndexes.find(index => index.name === 'streamId_sequence');
 
     expect(index).to.exist;
     expect(index?.key).to.deep.eq({ streamId: 1, sequence: 1 });
     expect(index?.unique).to.be.true;
+  });
+
+  it('should create multiple instances for the same collection without an error', async () => {
+    await db.createFactStore<UnknownFact>({ name: collectionName });
+    await db.createFactStore<UnknownFact>({ name: collectionName });
+
+    // The collection should be created (if it does not exist already)
+    expect(await collectionExists(db.mongoDatabase, collectionName)).to.be.true;
+
+    // Check that we have the index we need
+    const allIndexes = await db.mongoDatabase.collection(collectionName).indexes();
+    const indexNames = allIndexes.map(index => index.name);
+
+    expect(indexNames)
+      .to.be.an('array').and
+      .to.have.lengthOf(2).and
+      .to.contain('_id_').and
+      .to.contain('streamId_sequence');
   });
 });
