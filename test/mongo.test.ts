@@ -29,6 +29,6 @@ describe('mongodb-memory-server', () => {
 
     // The database should contain only the collection with the just added document
     const after = await db.listCollections().toArray();
-    expect(after[0].name).to.eq('myCollection');
+    expect(after?.[0]?.name).to.eq('myCollection');
   });
 });
