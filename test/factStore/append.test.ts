@@ -72,7 +72,7 @@ describe('factStore.append()', () => {
     let countOfRuns = 0;
 
     // Add a delay on every append
-    store.onAppend(async () => {
+    store.onAfterAppend(async () => {
       await sleep(10);
       countOfRuns += 1;
     });

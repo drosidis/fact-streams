@@ -13,7 +13,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
   } = options;
 
   const onBeforeAppendListeners: ((fact: F) => Promise<F>)[] = [];
-  const onAppendListeners: ((fact: F) => Promise<void>)[] = [];
+  const onAfterAppendListeners: ((fact: F) => Promise<void>)[] = [];
 
   // Ensure the collection exists and it has the required index
   try {
@@ -70,15 +70,15 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     await mongoDatabase.collection(factStoreName).insertOne(factToSave);
 
     // Call all the listeners
-    for await (const callback of onAppendListeners) {
+    for await (const callback of onAfterAppendListeners) {
       await callback(factToSave);
     }
 
     return factToSave;
   }
 
-  function onAppend(callback: (fact: F) => Promise<void>) {
-    onAppendListeners.push(callback);
+  function onAfterAppend(callback: (fact: F) => Promise<void>) {
+    onAfterAppendListeners.push(callback);
   }
 
   function onBeforeAppend(callback: (fact: F) => Promise<F>) {
@@ -123,7 +123,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
       reducer,
     } = view;
 
-    onAppendListeners.push(async (latestFact) => {
+    onAfterAppendListeners.push(async (latestFact) => {
       const cursor = await find(latestFact.streamId);
       let state: S | null = initialState;
       for await (const fact of cursor) {
@@ -147,7 +147,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
 
   return {
     append,
-    onAppend,
+    onAfterAppend,
     onBeforeAppend,
     find,
     findAll,

@@ -22,7 +22,7 @@ export interface PersistentView<S, F extends UnknownFact> {
 
 export interface FactStore<F extends UnknownFact> {
   append: (fact: F) => Promise<F>; // Returns the fact that was actually inserted
-  onAppend: (callback: (fact: F) => Promise<void>) => void;
+  onAfterAppend: (callback: (fact: F) => Promise<void>) => void;
   onBeforeAppend: (callback: (fact: F) => Promise<F>) => void;
   find: (streamId: ObjectId | string) => AsyncGenerator<WithId<F>, void, unknown>;
   findAll: () => AsyncGenerator<WithId<F>, void, unknown>;
