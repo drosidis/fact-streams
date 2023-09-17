@@ -25,37 +25,37 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
       throw error;
     }
   }
-  await mongoDatabase.collection(factStoreName).createIndex({ streamId: 1, sequence: 1 }, { name: 'streamId_sequence', unique: true });
+  await mongoDatabase.collection(factStoreName).createIndex({ streamId: 1, revision: 1 }, { name: 'streamId_revision', unique: true });
 
   async function append(fact: F): Promise<F> {
-    // Find the latest sequence number for this stream
+    // Find the latest revision number for this stream
     let newStreamId;
-    let newSequence;
+    let newRevision;
 
     if (NEW.equals(fact.streamId)) {
       newStreamId = new ObjectId();
-      newSequence = 1;
+      newRevision = 1;
     } else {
       const lastFactInDb = await mongoDatabase
         .collection<F>(factStoreName)
         //TODO: why does this type fail?
         // @ts-ignore
         .find({ streamId: fact.streamId })
-        .sort({ sequence: -1 })
+        .sort({ revision: -1 })
         .limit(1)
         .toArray();
 
       newStreamId = fact.streamId;
-      newSequence = lastFactInDb.length === 0
+      newRevision = lastFactInDb.length === 0
         ? 1
-        : (lastFactInDb[0]?.sequence || 0) + 1;
+        : (lastFactInDb[0]?.revision || 0) + 1;
     }
 
     // Create the Fact that will saved
     let factToSave: F = {
       ...fact,
       streamId: newStreamId,
-      sequence: newSequence,
+      revision: newRevision,
       time: new Date(),
     };
 
@@ -66,7 +66,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
 
     // Optimistic insert
     // TODO: wrap the MongoError with a FactStreams error on duplicates, otherwise throw as is
-    // TODO: if duplicate sequence, then try again (3 times?)
+    // TODO: if duplicate revision, then try again (3 times?)
     await mongoDatabase.collection(factStoreName).insertOne(factToSave);
 
     // Call all the listeners

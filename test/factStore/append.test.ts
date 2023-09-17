@@ -29,7 +29,7 @@ describe('factStore.append()', () => {
     await stop();
   });
 
-  it('should fail when a race condition would result in duplicate fact sequence for the same stream', async () => {
+  it('should fail when a race condition would result in duplicate fact revision for the same stream', async () => {
     const store = await db.createFactStore<InventoryFact>({ name: collectionName });
 
     // Deliberately create a race condition, by making sure that by the time the first fact we will insert
@@ -54,7 +54,7 @@ describe('factStore.append()', () => {
           expect(err.message).to.match(/E11000/);
         }),
       insertTwo
-        .then((savedFact) => expect(savedFact).contain({ type: 'sold', sequence: 2 }))
+        .then((savedFact) => expect(savedFact).contain({ type: 'sold', revision: 2 }))
         .catch((err) => { throw err }),
     ])
 
@@ -62,8 +62,8 @@ describe('factStore.append()', () => {
     const allFacts = await findAll(store.mongoDatabase, collectionName);
 
     expect(allFacts).to.be.an('array').and.have.lengthOf(2);
-    expect(allFacts[0]).to.contain({ type: 'init', sequence: 1 });
-    expect(allFacts[1]).to.contain({ type: 'sold', sequence: 2 });
+    expect(allFacts[0]).to.contain({ type: 'init', revision: 1 });
+    expect(allFacts[1]).to.contain({ type: 'sold', revision: 2 });
   });
 
   it('should wait for all callbacks to return', async () => {

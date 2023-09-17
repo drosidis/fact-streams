@@ -27,7 +27,7 @@ describe('createFactStore()', () => {
     await stop();
   });
 
-  it('should ensure that the "facts" collection exists and that it has a unique index on streamId and sequence', async () => {
+  it('should ensure that the "facts" collection exists and that it has a unique index on streamId and revision', async () => {
     const store = await db.createFactStore<UnknownFact>({ name: collectionName });
 
     // Collection should be created (if it does not exist already)
@@ -35,10 +35,10 @@ describe('createFactStore()', () => {
 
     // Check that we have the index we need
     const allIndexes = await store.mongoDatabase.collection(collectionName).indexes();
-    const index = await allIndexes.find(index => index.name === 'streamId_sequence');
+    const index = await allIndexes.find(index => index.name === 'streamId_revision');
 
     expect(index).to.exist;
-    expect(index?.key).to.deep.eq({ streamId: 1, sequence: 1 });
+    expect(index?.key).to.deep.eq({ streamId: 1, revision: 1 });
     expect(index?.unique).to.be.true;
   });
 
@@ -57,6 +57,6 @@ describe('createFactStore()', () => {
       .to.be.an('array').and
       .to.have.lengthOf(2).and
       .to.contain('_id_').and
-      .to.contain('streamId_sequence');
+      .to.contain('streamId_revision');
   });
 });

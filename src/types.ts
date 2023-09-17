@@ -2,7 +2,7 @@ import { Collection, Db, ObjectId, WithId } from "mongodb";
 
 export interface Fact<TFactType extends string, TData = never, TMetadata = never> {
   streamId: ObjectId;
-  sequence: number;
+  revision: number;
   type: TFactType;
   time: Date;
   data: TData;

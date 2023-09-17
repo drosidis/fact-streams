@@ -42,11 +42,11 @@ describe('factStore', () => {
 
       expect(allFacts).to.have.a.lengthOf(5);
 
-      expect(allFacts[0]).to.include({ sequence: 1, type: 'init' });
-      expect(allFacts[1]).to.include({ sequence: 1, type: 'init' });
-      expect(allFacts[2]).to.include({ sequence: 2, type: 'received' });
-      expect(allFacts[3]).to.include({ sequence: 3, type: 'sold' });
-      expect(allFacts[4]).to.include({ sequence: 2, type: 'discontinued' });
+      expect(allFacts[0]).to.include({ revision: 1, type: 'init' });
+      expect(allFacts[1]).to.include({ revision: 1, type: 'init' });
+      expect(allFacts[2]).to.include({ revision: 2, type: 'received' });
+      expect(allFacts[3]).to.include({ revision: 3, type: 'sold' });
+      expect(allFacts[4]).to.include({ revision: 2, type: 'discontinued' });
 
       // Test the stream ID separately, because `include` cannot test OjectId
       expect(allFacts[0]?.streamId?.equals(penId)).to.be.true;
@@ -65,8 +65,8 @@ describe('factStore', () => {
 
       expect(allFacts).to.be.an('array').and.to.have.a.lengthOf(2);
 
-      expect(allFacts[0]).to.include({ sequence: 1, type: 'init' });
-      expect(allFacts[1]).to.include({ sequence: 2, type: 'discontinued' });
+      expect(allFacts[0]).to.include({ revision: 1, type: 'init' });
+      expect(allFacts[1]).to.include({ revision: 2, type: 'discontinued' });
 
       // Test the stream ID separately, because `include` cannot test OjectId
       expect(allFacts[0]?.streamId?.equals(pencilId)).to.be.true;
