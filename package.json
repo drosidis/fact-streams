@@ -5,8 +5,8 @@
   "author": "Yannis Drosidis <yannis@drosidis.com>",
   "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/index.d.ts",
-  "types": "",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "ts-mocha test/**/*.test.ts",
