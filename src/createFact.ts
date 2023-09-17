@@ -1,9 +1,10 @@
-import { NEW, UnknownFact } from "./types";
+import { ObjectId } from "mongodb";
+import { UnknownFact } from "./types";
 
-export default function createFact<F extends UnknownFact>(streamId: number, type: F['type'], data: F['data'], metadata: F['metadata']): F {
+export default function createFact<F extends UnknownFact>(streamId: ObjectId, type: F['type'], data: F['data'], metadata: F['metadata']): F {
   return {
     streamId,
-    sequence: NEW,
+    sequence: -1, // It gets reset onAppend
     type,
     time: new Date(),
     data,

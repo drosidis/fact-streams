@@ -1,4 +1,5 @@
-import { Fact, FactStreamsDatabase, FactStore, NEW, createFact } from '../../src';
+import { FactStreamsDatabase, NEW, createFact } from '../../src';
+import { Fact, FactStore } from '../../src/types';
 
 /**
  * Fixtures to model an Inventory app, to track the items in a warehouse

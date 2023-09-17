@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Db, Document, MongoError } from 'mongodb';
+import { Db, Document, MongoError, ObjectId } from 'mongodb';
 
-import { createSequenceGenerator } from './SequenceGenerator';
 import { FactReducer, FactStore, NEW, PersistentView, UnknownFact } from './types';
 
 export interface CreateFactStoreOptions {
@@ -15,9 +14,6 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
 
   const onBeforeAppendListeners: ((fact: F) => Promise<F>)[] = [];
   const onAppendListeners: ((fact: F) => Promise<void>)[] = [];
-
-  const sequenceGenerator = createSequenceGenerator(mongoDatabase, `${factStoreName}_ids`);
-  sequenceGenerator.init();
 
   // Ensure the collection exists and it has the required index
   try {
@@ -36,8 +32,8 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     let newStreamId;
     let newSequence;
 
-    if (fact.streamId === NEW) {
-      newStreamId = await sequenceGenerator.nextStreamId();
+    if (NEW.equals(fact.streamId)) {
+      newStreamId = new ObjectId();
       newSequence = 1;
     } else {
       const lastFactInDb = await mongoDatabase
@@ -89,12 +85,12 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     onBeforeAppendListeners.push(callback);
   }
 
-  async function* find(streamId: number) {
+  async function* find(streamId: ObjectId | string) {
     const cursor = await mongoDatabase
       .collection<F>(factStoreName)
       //TODO: why does this type fail?
       // @ts-ignore
-      .find({ streamId });
+      .find({ streamId: new ObjectId(streamId) });
 
     yield* cursor;
   }
@@ -108,7 +104,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
   }
 
   function createTransientView<S>(reducer: FactReducer<S, F>, initialState: S | null = null) {
-    return async function(streamId: number) {
+    return async function(streamId: ObjectId | string) {
       const cursor = await find(streamId);
       let state: S | null = initialState;
       for await (const fact of cursor) {
