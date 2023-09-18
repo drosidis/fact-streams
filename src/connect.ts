@@ -1,18 +1,7 @@
-import { Db, MongoClient } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
-import { createFactStore, CreateFactStoreOptions } from './factStore';
-import { FactStore, UnknownFact } from './types';
-
-interface ConnectOptions {
-  uri: string;
-  dbName: string;
-}
-
-export interface FactStreamsDatabase {
-  createFactStore: <T extends UnknownFact>(options: CreateFactStoreOptions) => Promise<FactStore<T>>;
-  mongoDatabase: Db,
-  close: () => Promise<void>;
-}
+import { createFactStore } from './factStore';
+import type { ConnectOptions, CreateFactStoreOptions, FactStreamsDatabase } from './types';
 
 export async function connect(options: ConnectOptions): Promise<FactStreamsDatabase> {
   const { uri, dbName } = options;

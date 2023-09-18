@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Db, Document, MongoError, ObjectId } from 'mongodb';
 
-import { FactReducer, FactStore, NEW, PersistentView, UnknownFact } from './types';
+import type { CreateFactStoreOptions, FactReducer, FactStore, PersistentView, UnknownFact } from './types';
 
-export interface CreateFactStoreOptions {
-  name: string;
-}
+export const NEW = new ObjectId('000000000000000000000001');
 
 export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, options: CreateFactStoreOptions): Promise<FactStore<F>> {
   const {

@@ -31,4 +31,17 @@ export interface FactStore<F extends UnknownFact> {
   mongoDatabase: Db,
 }
 
-export const NEW = new ObjectId('000000000000000000000001');
+export interface CreateFactStoreOptions {
+  name: string;
+}
+
+export interface FactStreamsDatabase {
+  createFactStore: <T extends UnknownFact>(options: CreateFactStoreOptions) => Promise<FactStore<T>>;
+  mongoDatabase: Db,
+  close: () => Promise<void>;
+}
+
+export interface ConnectOptions {
+  uri: string;
+  dbName: string;
+}
