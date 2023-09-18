@@ -116,7 +116,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
   function createPersistentView<S extends Document>(view: PersistentView<S, F>) {
     const {
       collectionName,
-      idField,
+      idField = '_id',
       initialState = null,
       reducer,
     } = view;

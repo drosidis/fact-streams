@@ -15,7 +15,7 @@ export type FactReducer<S, F extends UnknownFact> = (state: S | null, fact: F) =
 
 export interface PersistentView<S, F extends UnknownFact> {
   collectionName: string;
-  idField: string;
+  idField?: string;
   reducer: FactReducer<S, F>;
   initialState?: S | null;
 }
