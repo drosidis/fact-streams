@@ -1,17 +1,31 @@
 {
   "name": "fact-streams",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An event-sourcing toolkit for Node and MongoDB",
+  "keywords": [
+    "event-sourcing",
+    "EventSourcing",
+    "CQRS",
+    "MongoDB"
+  ],
   "author": "Yannis Drosidis <yannis@drosidis.com>",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:drosidis/fact-streams.git"
+  },
+  "homepage": "https://github.com/drosidis/fact-streams",
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "test": "ts-mocha test/**/*.test.ts",
     "test:watch": "ts-mocha --watch --watch-files 'src,test' test/**/*.test.ts",
-    "build:tsup": "tsup src/index.ts --format cjs,esm --dts",
+    "lint": "tsc",
     "eslint": "eslint src/**/*.ts test/**/*.ts"
   },
   "dependencies": {
