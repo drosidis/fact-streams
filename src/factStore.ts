@@ -17,7 +17,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
   try {
     await mongoDatabase.createCollection(factStoreName);
   } catch (error) {
-    if (error instanceof MongoError && error.message.startsWith('Collection already exists')) {
+    if (error instanceof MongoError && error.code === 48) { // Code: 48, codeName: 'NamespaceExists',
       // No-op: the collection already exists
     } else {
       throw error;
