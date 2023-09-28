@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 
 import { startMongoInstance, dbName } from './shared/mongodb';
+import { sleep } from './shared/miscUtils';
 import { connect, FactReducer, FactStreamsDatabase } from '../src';
 
 import { InventoryFact, createFixtures } from './fixtures/InventoryApp';
@@ -77,5 +78,37 @@ describe('factStore.createTransientView()', () => {
       totalCost: 150,
       totalSales: 20,
     });
+  });
+
+  it('should allow async reducer', async () => {
+    const { store, penId, pencilId } = await createFixtures(db);
+
+    interface InventoryItem {
+      revision: number;
+      countFacts: number;
+    }
+
+    const reducer: FactReducer<InventoryItem, InventoryFact> = async (item, fact) => {
+      await sleep(1);
+
+      if (fact.type === 'init') {
+        return {
+          revision: fact.revision,
+          countFacts: 1,
+        }
+      } else if (item === null) {
+        throw new Error('Missing `init` fact at the beginning of the stream');
+      } else {
+        return {
+          revision: fact.revision,
+          countFacts: item.countFacts + 1,
+        };
+      }
+    }
+
+    const getItem = store.createTransientView(reducer, null);
+
+    expect(await getItem(penId)).to.deep.eq({ revision: 3, countFacts: 3 });
+    expect(await getItem(pencilId)).to.deep.eq({ revision: 2, countFacts: 2 });
   });
 });

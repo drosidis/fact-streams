@@ -107,7 +107,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
       let state: S | null = initialState;
       for await (const fact of cursor) {
         // @ts-ignore
-        state = reducer(state, fact);
+        state = await reducer(state, fact);
       }
       return state;
     }
@@ -126,7 +126,7 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
       let state: S | null = initialState;
       for await (const fact of cursor) {
         // @ts-ignore
-        state = reducer(state, fact);
+        state = await reducer(state, fact);
       }
 
       if (state === null) {

@@ -11,7 +11,7 @@ export interface Fact<TFactType extends string, TData = never, TMetadata = never
 
 export type UnknownFact = Fact<string, unknown, unknown>;
 
-export type FactReducer<S, F extends UnknownFact> = (state: S | null, fact: F) => (S | null);
+export type FactReducer<S, F extends UnknownFact> = (state: S | null, fact: F) => Promise<S | null>;
 
 export interface PersistentView<S, F extends UnknownFact> {
   collectionName: string;
