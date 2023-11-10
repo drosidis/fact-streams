@@ -1,11 +1,10 @@
 import { expect } from 'chai';
 
-import { startMongoInstance, dbName } from './shared/mongodb';
-import { connect, FactReducer, FactStreamsDatabase } from '../src';
+import { FactStreamsDatabase, PersistentView, connect } from '../src';
+import { dbName, startMongoInstance } from './shared/mongodb';
+import { Discontinued, Init, InventoryFact, Received, Sold, appendFacts } from './fixtures/InventoryApp';
 
-import { InventoryFact, appendFacts } from './fixtures/InventoryApp';
-
-describe('factStore.createPersistentView()', () => {
+describe('PersistentView', () => {
   let db: FactStreamsDatabase;
   let stop: () => void;
 
@@ -26,6 +25,9 @@ describe('factStore.createPersistentView()', () => {
     await stop();
   });
 
+  // TODO: should throw an error by default on unknown fact types
+  // TODO: should allow me to ignore unknown fact types
+
   it('should create a function that runs the reducer on any single fact stream', async () => {
     const store = await db.createFactStore<InventoryFact>({ name: 'unitTestInventoryFacts' });
 
@@ -37,61 +39,48 @@ describe('factStore.createPersistentView()', () => {
       totalSales: number;
     }
 
-    const reducer: FactReducer<InventoryItem, InventoryFact> = (item, fact) => {
-      if (fact.type === 'init') {
+    const view = new PersistentView<InventoryItem, InventoryFact>({ factStore: store, collectionName: 'invoices' })
+      .on<Init>('init', (item, fact) => {
         return {
           label: fact.data.name,
           description: fact.data.description,
           stock: 0,
           totalCost: 0,
           totalSales: 0,
-        }
-      } else if (item === null) {
-        throw new Error('Missing `init` fact at the beginning of the stream');
-      } else if (fact.type === 'received') {
+        };
+      })
+      .on<Received>('received', (item, fact) => {
+        if (item === null) throw new Error('item should never be null at this point');
         return {
           ...item,
           stock: item.stock + fact.data.quantity,
           totalCost: item.totalCost + fact.data.cost,
         };
-      } else if (fact.type === 'sold') {
+      })
+      .on<Sold>('sold', (item, fact) => {
+        if (item === null) throw new Error('item should never be null at this point');
         return {
           ...item,
           stock: item.stock - fact.data.quantity,
           totalSales: item.totalSales + fact.data.price,
         };
-      } else if (fact.type === 'discontinued') {
-        return null;
-      } else {
-        // Ignore all other fact types
-        return item;
-      }
-    }
+      })
+      .on<Discontinued>('discontinued', () => null);
 
-    const items = store.createPersistentView({
-      collectionName: 'items',
-      idField: '_id',
-      reducer,
+    // Create some facts
+    const { penId } = await appendFacts(store);
+
+    // Fetch the read-view
+    const allItems = await view.collection.find().toArray();
+
+    expect(allItems.length).to.eq(1);
+    expect(String(allItems[0]?._id)).to.eq(String(penId));
+    expect(allItems[0]).to.contain({
+      label: 'Pen',
+      description: 'For persistent writing',
+      stock: 18,
+      totalCost: 150,
+      totalSales: 20
     });
-
-    const { penId, pencilId } = await appendFacts(store);
-
-    const allItems = await items
-      .find()
-      // .sort({ })
-      .toArray();
-
-    // console.log('------------------------------- ALL ');
-    // console.log(allItems);
-
-
-
-    // expect().to.deep.eq({
-    //   label: 'Pen',
-    //   description: 'For persistent writing',
-    //   stock: 18,
-    //   totalCost: 150,
-    //   totalSales: 20,
-    // });
   });
 });

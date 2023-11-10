@@ -1,6 +1,6 @@
 {
   "name": "fact-streams",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "An event-sourcing toolkit for Node and MongoDB",
   "keywords": [
     "event-sourcing",

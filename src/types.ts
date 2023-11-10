@@ -1,4 +1,4 @@
-import { Collection, Db, ObjectId, WithId } from "mongodb";
+import { Db, ObjectId, WithId } from "mongodb";
 
 export interface Fact<TFactType extends string, TData = never, TMetadata = never> {
   streamId: ObjectId;
@@ -11,14 +11,7 @@ export interface Fact<TFactType extends string, TData = never, TMetadata = never
 
 export type UnknownFact = Fact<string, unknown, unknown>;
 
-export type FactReducer<S, F extends UnknownFact> = (state: S | null, fact: F) => Promise<S | null>;
-
-export interface PersistentView<S, F extends UnknownFact> {
-  collectionName: string;
-  idField?: string;
-  reducer: FactReducer<S, F>;
-  initialState?: S | null;
-}
+export type FactReducer<S, F extends UnknownFact> = (state: S | null, fact: F) => S | null | Promise<S | null>;
 
 export interface FactStore<F extends UnknownFact> {
   append: (fact: F) => Promise<F>; // Returns the fact that was actually inserted
@@ -27,7 +20,6 @@ export interface FactStore<F extends UnknownFact> {
   find: (streamId: ObjectId | string) => AsyncGenerator<WithId<F>, void, unknown>;
   findAll: () => AsyncGenerator<WithId<F>, void, unknown>;
   createTransientView: <S>(reducer: FactReducer<S, F>, initialState: S | null) => (streamId: ObjectId | string) => Promise<S | null>;
-  createPersistentView: <S extends Document>(view: PersistentView<S, F>) => Collection<S>;
   mongoDatabase: Db,
 }
 

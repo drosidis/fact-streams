@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Db, Document, MongoError, ObjectId } from 'mongodb';
+import { Db, MongoError, ObjectId } from 'mongodb';
 
-import type { CreateFactStoreOptions, FactReducer, FactStore, PersistentView, UnknownFact } from './types';
+import type { CreateFactStoreOptions, FactReducer, FactStore, UnknownFact } from './types';
 
 export const NEW = new ObjectId('000000000000000000000001');
 
@@ -113,36 +113,6 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     }
   }
 
-  function createPersistentView<S extends Document>(view: PersistentView<S, F>) {
-    const {
-      collectionName,
-      idField = '_id',
-      initialState = null,
-      reducer,
-    } = view;
-
-    onAfterAppendListeners.push(async (latestFact) => {
-      const cursor = await find(latestFact.streamId);
-      let state: S | null = initialState;
-      for await (const fact of cursor) {
-        // @ts-ignore
-        state = await reducer(state, fact);
-      }
-
-      if (state === null) {
-        await mongoDatabase.collection(collectionName).deleteOne({ [idField]: latestFact.streamId });
-      } else {
-        await mongoDatabase.collection(collectionName).replaceOne(
-          { [idField]: latestFact.streamId },
-          state,
-          { upsert: true },
-        );
-      }
-    });
-
-    return mongoDatabase.collection<S>(collectionName);
-  }
-
   return {
     append,
     onAfterAppend,
@@ -150,7 +120,6 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     find,
     findAll,
     createTransientView,
-    createPersistentView,
     mongoDatabase,
   };
 }
