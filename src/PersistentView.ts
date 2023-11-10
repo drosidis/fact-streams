@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { FactReducer, FactStore, UnknownFact } from "../src";
 
 export default class PersistentView2<S, F extends UnknownFact> {
@@ -33,6 +34,7 @@ export default class PersistentView2<S, F extends UnknownFact> {
   }
 
   on = <SF extends F>(type: SF['type'], reducer: FactReducer<S, SF>) => {
+    // @ts-ignore
     this.#reducerFunctions[type] = reducer;
     return this;
   }
@@ -45,6 +47,7 @@ export default class PersistentView2<S, F extends UnknownFact> {
     const cursor = await this.#factStore.find(fact.streamId);
     let state: S | null = this.#initialState;
     for await (const fact of cursor) {
+      // @ts-ignore
       state = await this.#reducer(state, fact);
     }
 
@@ -55,6 +58,7 @@ export default class PersistentView2<S, F extends UnknownFact> {
     } else {
       await this.#factStore.mongoDatabase.collection(this.#collectionName).replaceOne(
         { [this.#idField]: fact.streamId },
+        // @ts-ignore
         state,
         { upsert: true },
       );

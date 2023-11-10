@@ -1,6 +1,6 @@
 {
   "name": "fact-streams",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "An event-sourcing toolkit for Node and MongoDB",
   "keywords": [
     "event-sourcing",
@@ -26,7 +26,8 @@
     "test": "ts-mocha test/**/*.test.ts",
     "test:watch": "ts-mocha --watch --watch-files 'src,test' test/**/*.test.ts",
     "lint": "tsc",
-    "eslint": "eslint src/**/*.ts test/**/*.ts"
+    "eslint": "eslint src/**/*.ts test/**/*.ts",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "mongodb": "^5.8.1"
