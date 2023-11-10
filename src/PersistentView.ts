@@ -5,6 +5,7 @@ export default class PersistentView2<S, F extends UnknownFact> {
   #collectionName: string;
   #idField: string;
   #initialState: S | null;
+  #onUnknownCallback: (fact: F) => S = (fact) => { throw new Error(`Unexpected fact type ${fact?.type}`) };
 
   #reducerFunctions: Record<string, FactReducer<S, F>> = {}; // type --> function
 
@@ -13,7 +14,7 @@ export default class PersistentView2<S, F extends UnknownFact> {
     if (typeReducer) {
       return typeReducer(state, fact);
     } else {
-      throw new Error(`Unexpected type ${fact.type}`);
+      return this.#onUnknownCallback(fact);
     }
   }
 
@@ -34,6 +35,10 @@ export default class PersistentView2<S, F extends UnknownFact> {
   on = <SF extends F>(type: SF['type'], reducer: FactReducer<S, SF>) => {
     this.#reducerFunctions[type] = reducer;
     return this;
+  }
+
+  onUnknownFact = (callback: (fact: F) => S) => {
+    this.#onUnknownCallback = callback;
   }
 
   #process = async (fact: F) => {
