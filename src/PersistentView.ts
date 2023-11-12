@@ -1,63 +1,75 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { FactReducer, FactStore, UnknownFact } from "../src";
+import { FactReducer, FactStore, ObjectId, UnknownFact } from "../src";
 
+type StateResult<S> = S | null | Promise<S | null>;
 export default class PersistentView2<S, F extends UnknownFact> {
+  // Fields needed to run reducer
+  #initialStateCallback: () => StateResult<S>;
+  #factCallbacks: Record<string, FactReducer<S, F>>; // fact-type --> function
+  #unknownCallback: (state: S | null , fact: F) => StateResult<S>;
+  #doneCallback: (state: S | null) => StateResult<S>;
+
+  // Fields needed to persist result
   #factStore: FactStore<F>;
   #collectionName: string;
   #idField: string;
-  #initialState: S | null;
-  #onUnknownCallback: (fact: F) => S = (fact) => { throw new Error(`Unexpected fact type ${fact?.type}`) };
 
-  #reducerFunctions: Record<string, FactReducer<S, F>> = {}; // type --> function
+  constructor(factStore: FactStore<F>, collectionName: string) {
+    this.#initialStateCallback = () => null;
+    this.#factCallbacks = {};
+    this.#unknownCallback = (state, fact) => { throw new Error(`Unexpected fact type: "${fact?.type}"`) };
+    this.#doneCallback = (state) => state;
 
-  #reducer: FactReducer<S, F> = (state, fact) => {
-    const typeReducer = this.#reducerFunctions[fact.type];
-    if (typeReducer) {
-      return typeReducer(state, fact);
-    } else {
-      return this.#onUnknownCallback(fact);
-    }
+    this.#factStore = factStore;
+    this.#idField = '_id';
+    this.#collectionName = collectionName;
+
+    this.#factStore.onAfterAppend((fact) => this.#process(fact.streamId));
   }
 
-  constructor(args: {
-    factStore: FactStore<F>;
-    collectionName: string;
-    idField?: string;
-    initialState?: S | null;
-  }) {
-    this.#factStore = args.factStore;
-    this.#collectionName = args.collectionName;
-    this.#idField = args.idField || '_id';
-    this.#initialState = args.initialState || null;
-
-    this.#factStore.onAfterAppend(this.#process);
-  }
-
-  on = <SF extends F>(type: SF['type'], reducer: FactReducer<S, SF>) => {
+  on<SF extends F>(type: SF['type'], reducer: FactReducer<S, SF>) {
     // @ts-ignore
-    this.#reducerFunctions[type] = reducer;
+    this.#factCallbacks[type] = reducer;
     return this;
   }
 
-  onUnknownFact = (callback: (fact: F) => S) => {
-    this.#onUnknownCallback = callback;
+  onUnknownFact(callback: (state: S | null, fact: F) => S) {
+    this.#unknownCallback = callback;
   }
 
-  #process = async (fact: F) => {
-    const cursor = await this.#factStore.find(fact.streamId);
-    let state: S | null = this.#initialState;
+  onDone(callback: (state: S | null) => S) {
+    this.#doneCallback = callback;
+  }
+
+  // A callback called every time there is a new fact in the fact-store
+  #process = async (streamId: ObjectId) => {
+    // Create a cursor to iterate over all facts for this stream
+    const cursor = await this.#factStore.find(streamId);
+
+    // Get initial state
+    let state = await this.#initialStateCallback();
+
+    // Apply each fact on the state
     for await (const fact of cursor) {
-      // @ts-ignore
-      state = await this.#reducer(state, fact);
+      const reducerForType = this.#factCallbacks[fact.type];
+      if (reducerForType) {
+        // @ts-ignore
+        state = await reducerForType(state, fact);
+      } else {
+        // @ts-ignore
+        state = await this.#unknownCallback(state, fact);
+      }
     }
 
+    // Do any final clean up
+    state = await this.#doneCallback(state);
+
+    // Persist the final state
     if (state === null) {
-      await this.#factStore.mongoDatabase.collection(this.#collectionName).deleteOne({
-        [this.#idField]: fact.streamId,
-      });
+      await this.collection.deleteOne({ [this.#idField]: streamId });
     } else {
-      await this.#factStore.mongoDatabase.collection(this.#collectionName).replaceOne(
-        { [this.#idField]: fact.streamId },
+      await this.collection.replaceOne(
+        { [this.#idField]: streamId },
         // @ts-ignore
         state,
         { upsert: true },
@@ -65,20 +77,18 @@ export default class PersistentView2<S, F extends UnknownFact> {
     }
   };
 
-
-  get readView() {
-    const collection = this.#factStore.mongoDatabase.collection(this.#collectionName);
-
-    return {
-      aggregate: collection.aggregate,
-      countDocuments: collection.countDocuments,
-      distinct: collection.distinct,
-      find: collection.find,
-      findOne: collection.findOne,
-    }
-  }
-
   get collection() {
     return this.#factStore.mongoDatabase.collection(this.#collectionName);
+  }
+
+  get readView() {
+    return {
+      aggregate: this.collection.aggregate,
+      countDocuments: this.collection.countDocuments,
+      distinct: this.collection.distinct,
+      find: this.collection.find,
+      findOne: this.collection.findOne,
+      rebuild: this.#process,
+    }
   }
 }

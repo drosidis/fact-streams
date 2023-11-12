@@ -27,6 +27,8 @@ describe('PersistentView', () => {
 
   // TODO: should throw an error by default on unknown fact types
   // TODO: should allow me to ignore unknown fact types
+  // TODO: should allow onDone
+  // TODO: should allow optional _id name
 
   it('should create a function that runs the reducer on any single fact stream', async () => {
     const store = await db.createFactStore<InventoryFact>({ name: 'unitTestInventoryFacts' });
@@ -39,7 +41,7 @@ describe('PersistentView', () => {
       totalSales: number;
     }
 
-    const view = new PersistentView<InventoryItem, InventoryFact>({ factStore: store, collectionName: 'invoices' })
+    const view = new PersistentView<InventoryItem, InventoryFact>(store, 'invoices')
       .on<Init>('init', (item, fact) => {
         return {
           label: fact.data.name,
