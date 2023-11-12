@@ -25,6 +25,14 @@
 
 We can **create** a new row
 
+## Inline
+
+![create_200.png](./create_200.png) We can **create** a new row
+
+## Inline with vertical align
+
+<img src="./create_200.png" style="width:200px; margin-right: 10px; vertical-align: middle;" > We can **create** a new row
+
 <style>
   h2 {
     clear:both;
