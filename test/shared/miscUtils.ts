@@ -14,6 +14,12 @@ export async function collectionExists(db: Db, name: string) {
   return allCollections.map(c => c.name).includes(name);
 }
 
+// Returns an index with the specified name, if it exists
+export async function findIndex(db: Db, collectionName: string, indexName: string) {
+  const allIndexes = await db.collection(collectionName).indexes();
+  return allIndexes.find(index => index.name === indexName);
+}
+
 // Return all the documents in a collection
 export async function findAll<T extends UnknownFact>(db: Db, name: string) {
   return db

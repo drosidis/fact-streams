@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { connect, FactStreamsDatabase } from '../../src';
 import { UnknownFact } from '../../src/types';
 import { startMongoInstance, dbName } from '../shared/mongodb';
-import { collectionExists } from '../shared/miscUtils';
+import { collectionExists, findIndex } from '../shared/miscUtils';
 
 describe('createFactStore()', () => {
   const collectionName = 'unitTestInventoryFacts';
@@ -34,9 +34,7 @@ describe('createFactStore()', () => {
     expect(await collectionExists(store.mongoDatabase, collectionName)).to.be.true;
 
     // Check that we have the index we need
-    const allIndexes = await store.mongoDatabase.collection(collectionName).indexes();
-    const index = await allIndexes.find(index => index.name === 'streamId_revision');
-
+    const index = await findIndex(store.mongoDatabase, collectionName, 'streamId_revision');
     expect(index).to.exist;
     expect(index?.key).to.deep.eq({ streamId: 1, revision: 1 });
     expect(index?.unique).to.be.true;
