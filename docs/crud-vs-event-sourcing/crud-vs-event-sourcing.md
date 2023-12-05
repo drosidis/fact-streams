@@ -7,19 +7,19 @@ CRUD stands for **C**reate, **R**etreive, **U**pdate and **D**elete. It is by fa
 
 The data is organised in tables with rows (objects) and columns (keys):
 
-<img src="table.png" style="max-width: 200px">
+<img src="table.png" width="200px">
 
 We can <b>create</b> a new row:
 
-<img src="create.png" style="max-width: 200px">
+<img src="create.png" width="200px">
 
 We can <b>update</b> cells in an existing row:
 
-<img src="update.png" style="max-width: 200px">
+<img src="update.png" width="200px">
 
 We can <b>delete</b> a row:
 
-<img src="delete.png" style="max-width: 200px">
+<img src="delete.png" width="200px">
 
 When we want to **retrieve** data, we run a *select* query on a table using a *where* clause to determine which rows we need.
 
@@ -33,7 +33,7 @@ The events are *immutable*. We never update or delete them. Even for deleting, w
 
 To get the current state we *replay* the events. A function, called **reducer**, will go through the list of all the events in the sequence that they were recorded to produce the current state, in this example the current list of our contacts.
 
-<img src="event-store.png" style="max-width: 200px;">
+<img src="event-store.png" width="200px;">
 
 ## CQRS
 
@@ -47,7 +47,7 @@ The *event store* table is the single source of truth for the database. We can d
 
 CQRS and event-sourcing are related terms, but they are not the same pattern. We could implement one without the other. However the `fact-streams` library is used to implement them in combination.
 
-<img src="cqrs.png" style="max-width: 550px;">
+<img src="cqrs.png" width="550px;">
 
 ## Benefits of event sourcing
 
