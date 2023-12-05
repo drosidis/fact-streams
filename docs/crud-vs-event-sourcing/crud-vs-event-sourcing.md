@@ -5,25 +5,21 @@ Event sourcing is a pattern for modelling a database, i.e. creating database sch
 ## CRUD
 CRUD stands for **C**reate, **R**etreive, **U**pdate and **D**elete. It is by far the most common way in which most software teams think about their database today.
 
-<div class="container">
-  <img src="table.png">
-  <span>The data is organised in tables with rows (objects) and columns (keys)</span>
-</div>
+The data is organised in tables with rows (objects) and columns (keys):
 
-<div class="container">
-  <img src="create.png">
-  <span>We can <b>create</b> a new row</span>
-</div>
+<img src="table.png" style="max-width: 200px">
 
-<div class="container">
-  <img src="update.png">
-  <span>We can <b>update</b> cells in an existing row</span>
-</div>
+We can <b>create</b> a new row:
 
-<div class="container">
-  <img src="delete.png">
-  <span>We can <b>delete</b> a row</span>
-</div>
+<img src="create.png" style="max-width: 200px">
+
+We can <b>update</b> cells in an existing row:
+
+<img src="update.png" style="max-width: 200px">
+
+We can <b>delete</b> a row:
+
+<img src="delete.png" style="max-width: 200px">
 
 When we want to **retrieve** data, we run a *select* query on a table using a *where* clause to determine which rows we need.
 
@@ -66,18 +62,3 @@ There are several advantages that event sourcing has over the CRUD pattern:
 ## Further reading
 
 You can learn more about event-sourcing in this [talk](https://www.youtube.com/watch?v=8JKjvY4etTY) by Greg Young, which is an excellent introduction to key concepts and it has been the inspiration for building `fact-streams`. This [talk](https://www.youtube.com/watch?v=ck7t592bvBg) by Martin Fowler and this [guide](https://www.eventstore.com/event-sourcing) are also very good sources of information.
-
-<style>
-  h2 {
-    clear:both;
-  }
-  .container {
-    display: flex;
-    align-items: center;
-    gap: 2em;
-    margin-bottom: 1em;
-  }
-  .container img {
-    width: 200px;
-  }
-</style>
