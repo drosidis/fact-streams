@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { WithId } from "mongodb";
+import { Collection, WithId } from "mongodb";
 
 import { FactReducer, FactStore, ObjectId, UnknownFact } from "../src";
 
@@ -60,27 +60,28 @@ export default class View<S, F extends UnknownFact> {
     return state;
   }
 
+  async #rebuild(collection: Collection<WithId<S>>, streamId: ObjectId) {
+    const state = await this.#replayFacts(streamId);
+
+    // Persist the final state
+    if (state === null) {
+      // @ts-ignore
+      await collection.deleteOne({ _id: streamId });
+    } else {
+      await collection.replaceOne(
+        // @ts-ignore
+        { _id: streamId },
+        state,
+        { upsert: true },
+      );
+    }
+  }
+
+
   createPersistent(collectionName: string) {
     const collection = this.#factStore.mongoDatabase.collection<WithId<S>>(collectionName);
 
-    this.#factStore.onAfterAppend(async (fact) => {
-      const streamId = fact.streamId;
-
-      const state = await this.#replayFacts(streamId);
-
-      // Persist the final state
-      if (state === null) {
-        // @ts-ignore
-        await collection.deleteOne({ _id: streamId });
-      } else {
-        await collection.replaceOne(
-          // @ts-ignore
-          { _id: streamId },
-          state,
-          { upsert: true },
-        );
-      }
-    });
+    this.#factStore.onAfterAppend(fact => this.#rebuild(collection, fact.streamId));
 
     return {
       aggregate: collection.aggregate.bind(collection),
@@ -90,7 +91,8 @@ export default class View<S, F extends UnknownFact> {
       findOne: collection.findOne.bind(collection),
 
       collection,
-      rebuild: (streamId: ObjectId) => this.#replayFacts(streamId),
+      replayFacts: (streamId: ObjectId) => this.#replayFacts(streamId),
+      rebuild: (streamId: ObjectId) => this.#rebuild(collection, streamId),
     }
   }
 
