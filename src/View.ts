@@ -83,11 +83,11 @@ export default class View<S, F extends UnknownFact> {
     });
 
     return {
-      aggregate: collection.aggregate,
-      countDocuments: collection.countDocuments,
-      distinct: collection.distinct,
-      find: collection.find,
-      findOne: collection.findOne,
+      aggregate: collection.aggregate.bind(collection),
+      countDocuments: collection.countDocuments.bind(collection),
+      distinct: collection.distinct.bind(collection),
+      find: collection.find.bind(collection),
+      findOne: collection.findOne.bind(collection),
 
       collection,
       rebuild: (streamId: ObjectId) => this.#replayFacts(streamId),

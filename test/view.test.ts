@@ -31,7 +31,7 @@ function createCoreView(store: FactStore<TicketFact>) {
         status: 'done',
       };
     })
-    .on<Deleted>('deleted', () => null)
+    .on<Deleted>('deleted', () => null);
 }
 
 describe('View', () => {
@@ -116,6 +116,18 @@ describe('View', () => {
 
       // The collection will have been created as a result of adding the index
       expect(await collectionExists(db.mongoDatabase, 'tickets')).to.be.true;
+    });
+
+    it('should expose the `find()` function of the underlying mongoDb read-view collection', async () => {
+      const store = await db.createFactStore<TicketFact>({ name: 'unitTestTicketFacts' });
+      const view = createCoreView(store).createPersistent('tickets');
+      const { id1, id3 } = await appendFixtureFacts(store);
+
+      const allTickets = await view.find().toArray();
+      const ids = allTickets.map(t => String(t._id));
+
+      expect(allTickets).to.have.lengthOf(2);
+      expect(ids).to.deep.equal([String(id1), String(id3)]);
     });
   });
 });
