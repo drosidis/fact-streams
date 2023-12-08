@@ -1,4 +1,4 @@
-import { Db, ObjectId, WithId } from "mongodb";
+import { Db, FindCursor, ObjectId, WithId } from "mongodb";
 
 export interface Fact<TFactType extends string, TData = never, TMetadata = never> {
   streamId: ObjectId;
@@ -17,8 +17,8 @@ export interface FactStore<F extends UnknownFact> {
   append: (fact: F) => Promise<F>; // Returns the fact that was actually inserted
   onAfterAppend: (callback: (fact: F) => Promise<void>) => void;
   onBeforeAppend: (callback: (fact: F) => Promise<F>) => void;
-  find: (streamId: ObjectId | string) => AsyncGenerator<WithId<F>, void, unknown>;
-  findAll: () => AsyncGenerator<WithId<F>, void, unknown>;
+  find: (streamId: ObjectId | string) => FindCursor<WithId<F>>;
+  findAll: () => FindCursor<WithId<F>>;
   createTransientView: <S>(reducer: FactReducer<S, F>, initialState: S | null) => (streamId: ObjectId | string) => Promise<S | null>;
   mongoDatabase: Db,
 }

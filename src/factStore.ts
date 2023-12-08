@@ -83,22 +83,18 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
     onBeforeAppendListeners.push(callback);
   }
 
-  async function* find(streamId: ObjectId | string) {
-    const cursor = await mongoDatabase
+  function find(streamId: ObjectId | string) {
+    return mongoDatabase
       .collection<F>(factStoreName)
       //TODO: why does this type fail?
       // @ts-ignore
       .find({ streamId: new ObjectId(streamId) });
-
-    yield* cursor;
   }
 
-  async function* findAll() {
-    const cursor = await mongoDatabase
+  function findAll() {
+    return mongoDatabase
       .collection<F>(factStoreName)
       .find();
-
-    yield* cursor;
   }
 
   function createTransientView<S>(reducer: FactReducer<S, F>, initialState: S | null = null) {
