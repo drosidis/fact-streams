@@ -29,10 +29,12 @@ export default class View<S, F extends UnknownFact> {
 
   onUnknownFact(callback: (state: S | null, fact: F) => S) {
     this.#unknownCallback = callback;
+    return this;
   }
 
   onDone(callback: (state: S | null) => S) {
     this.#doneCallback = callback;
+    return this;
   }
 
   async #replayFacts(streamId: ObjectId) {
@@ -76,7 +78,6 @@ export default class View<S, F extends UnknownFact> {
       );
     }
   }
-
 
   createPersistent(collectionName: string) {
     const collection = this.#factStore.mongoDatabase.collection<WithId<S>>(collectionName);
