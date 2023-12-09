@@ -61,12 +61,9 @@ describe('View', () => {
   //    It should throw an error by default on unknown fact types
   //    It should allow me to ignore unknown fact types
   //    It should allow `onDone`
+  //    It should allow both sync and async reducers
 
-  // TODO: createTransient view
-  //    It should be able to replay all facts
-  //    It should be able to replay all facts until a specific date
-
-  describe('createPersistent', () => {
+  describe('createPersistent()', () => {
     // TODO:
     //    It should create the collection even before I append an event
     //    It should expose all mongoDb read functions: find, findOne, count, distinct, aggregate, count
@@ -74,10 +71,9 @@ describe('View', () => {
     //    It should expose a `replay(streamId, untilDate)` function
     //    It should expose the collection
 
-
     it('should ensure that the read-view collection is in sync with the fact store', async () => {
       const store = await db.createFactStore<TicketFact>({ name: 'unitTestTicketFacts' });
-      const view = createCoreView(store).createPersistent('tickets');
+      const view = await createCoreView(store).createPersistent('tickets');
 
       // Add some facts
       const { id1, id3 } = await appendFixtureFacts(store);
@@ -102,10 +98,9 @@ describe('View', () => {
       });
     });
 
-
-    it('should allow to create an index on the read-view collection even before the first fact has been inserted', async () => {
+    it('should make it possible to create an index on the read-view collection even before the first fact has been inserted', async () => {
       const store = await db.createFactStore<TicketFact>({ name: 'unitTestTicketFacts' });
-      const view = createCoreView(store).createPersistent('tickets');
+      const view = await createCoreView(store).createPersistent('tickets');
 
       // Create an index
       view.collection.createIndex({ title: 1 }, { name: 'testIndex' });
@@ -120,7 +115,7 @@ describe('View', () => {
 
     it('should expose the `find()` function of the underlying mongoDb read-view collection', async () => {
       const store = await db.createFactStore<TicketFact>({ name: 'unitTestTicketFacts' });
-      const view = createCoreView(store).createPersistent('tickets');
+      const view = await createCoreView(store).createPersistent('tickets');
       const { id1, id3 } = await appendFixtureFacts(store);
 
       const allTickets = await view.find().toArray();
@@ -128,6 +123,34 @@ describe('View', () => {
 
       expect(allTickets).to.have.lengthOf(2);
       expect(ids).to.deep.equal([String(id1), String(id3)]);
+    });
+  });
+
+  describe('createTransient()', () => {
+    it('should be able to replay all facts for a stream', async () => {
+      const store = await db.createFactStore<TicketFact>({ name: 'unitTestTicketFacts' });
+      const replay = await createCoreView(store).createTransient();
+      const { id1, id3 } = await appendFixtureFacts(store);
+
+      const ticket1 = await replay(id1);
+      expect(ticket1).to.deep.equal({
+        _id: id1,
+        title: 'Create all pages',
+        points: 8,
+        status: 'done',
+      });
+
+      const ticket3 = await replay(id3);
+      expect(ticket3).to.deep.equal({
+        _id: id3,
+        title: 'Add favicon',
+        points: 2,
+        status: 'to-do',
+      });
+    });
+
+    xit('should be able to replay all facts for a stream up to a certain timestamp', async () => {
+      // TODO: add implementation and tests
     });
   });
 });

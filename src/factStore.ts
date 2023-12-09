@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Db, MongoError, ObjectId } from 'mongodb';
 
-import type { CreateFactStoreOptions, FactReducer, FactStore, UnknownFact } from './types';
+import type { CreateFactStoreOptions, FactStore, UnknownFact } from './types';
 
 export const NEW = new ObjectId('000000000000000000000001');
 
@@ -97,25 +97,12 @@ export async function createFactStore<F extends UnknownFact>(mongoDatabase: Db, 
       .find();
   }
 
-  function createTransientView<S>(reducer: FactReducer<S, F>, initialState: S | null = null) {
-    return async function(streamId: ObjectId | string) {
-      const cursor = await find(streamId);
-      let state: S | null = initialState;
-      for await (const fact of cursor) {
-        // @ts-ignore
-        state = await reducer(state, fact);
-      }
-      return state;
-    }
-  }
-
   return {
     append,
     onAfterAppend,
     onBeforeAppend,
     find,
     findAll,
-    createTransientView,
     mongoDatabase,
   };
 }

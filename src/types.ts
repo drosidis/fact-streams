@@ -19,7 +19,6 @@ export interface FactStore<F extends UnknownFact> {
   onBeforeAppend: (callback: (fact: F) => Promise<F>) => void;
   find: (streamId: ObjectId | string) => FindCursor<WithId<F>>;
   findAll: () => FindCursor<WithId<F>>;
-  createTransientView: <S>(reducer: FactReducer<S, F>, initialState: S | null) => (streamId: ObjectId | string) => Promise<S | null>;
   mongoDatabase: Db,
 }
 

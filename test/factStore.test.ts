@@ -5,14 +5,6 @@ import { connect, FactStreamsDatabase } from '../src';
 
 import { createFixtures } from './fixtures/InventoryApp';
 
-async function toArray<T>(gen: AsyncIterable<T>): Promise<T[]> {
-  const out: T[] = []
-  for await(const x of gen) {
-    out.push(x);
-  }
-  return out;
-}
-
 describe('factStore', () => {
   let db: FactStreamsDatabase;
   let stop: () => void;
@@ -38,7 +30,7 @@ describe('factStore', () => {
     it('should return *all* the *sorted* facts in the store', async () => {
       const { store, penId, pencilId } = await createFixtures(db);
 
-      const allFacts = await toArray(await store.findAll());
+      const allFacts = await store.findAll().toArray();
 
       expect(allFacts).to.have.a.lengthOf(5);
 
@@ -61,7 +53,7 @@ describe('factStore', () => {
     it('should return *all* the *sorted* facts for one stream', async () => {
       const { store, pencilId } = await createFixtures(db);
 
-      const allFacts = await toArray(await store.find(pencilId));
+      const allFacts = await store.find(pencilId).toArray();
 
       expect(allFacts).to.be.an('array').and.to.have.a.lengthOf(2);
 
