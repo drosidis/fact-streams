@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Collection, WithId } from "mongodb";
 
-import { FactReducer, FactStore, ObjectId, UnknownFact } from "../src";
+import type { FactReducer, FactStore, ObjectId, UnknownFact } from "../src";
 
 type StateResult<S> = S | null | Promise<S | null>;
 
@@ -27,12 +27,12 @@ export default class View<S, F extends UnknownFact> {
     return this;
   }
 
-  onUnknownFact(callback: (state: S | null, fact: F) => S) {
+  onUnknownFact(callback: (state: S | null, fact: F) => StateResult<S>) {
     this.#unknownCallback = callback;
     return this;
   }
 
-  onDone(callback: (state: S | null) => S) {
+  onDone(callback: (state: S | null) => StateResult<S>) {
     this.#doneCallback = callback;
     return this;
   }
@@ -79,7 +79,7 @@ export default class View<S, F extends UnknownFact> {
     }
   }
 
-  createPersistent(collectionName: string) {
+  async createPersistent(collectionName: string) {
     const collection = this.#factStore.mongoDatabase.collection<WithId<S>>(collectionName);
 
     this.#factStore.onAfterAppend(fact => this.#rebuild(collection, fact.streamId));
@@ -97,7 +97,7 @@ export default class View<S, F extends UnknownFact> {
     }
   }
 
-  createTransient() {
+  async createTransient() {
     return (streamId: ObjectId) => this.#replayFacts(streamId);
   }
 }
