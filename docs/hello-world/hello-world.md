@@ -9,7 +9,7 @@ Let's go through an example, to see how *fact-streams* can help you create a mod
 First, we need to connect to our database.
 
 ```typescript
-import { connect } from 'fact-stream';
+import { connect } from 'fact-streams';
 
 const db = await connect({
   uri: 'mongodb://localhost:27017/',
@@ -24,7 +24,7 @@ It is recommended, but not required, to create a *single* connection instance fo
 We need to think what facts we want to track over time for each `invoice` in our system and create the corresponding types. For each fact we need to specify a `type` which acts like an identifier and also decide what is the data we want to capture. Noetice that `data` is not always required.
 
 ```typescript
-import { Fact } from 'fact-stream';
+import { Fact } from 'fact-streams';
 
 // As meta-data, we want to track who was the user that initiated a change and what was their IP
 interface Who {
@@ -57,7 +57,7 @@ A fact store provides a mechanism to append and read facts from individual strea
 ### Create commands, that append facts in the DB
 
 ```typescript
-import { createFact, NEW } from 'fact-stream';
+import { createFact, NEW } from 'fact-streams';
 
 function create = (who: Who, recipient: string, dueDate: Date) {
   const fact = createFact<Created>(NEW, 'created', { recipient, dueDate }, who);
