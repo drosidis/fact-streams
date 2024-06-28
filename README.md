@@ -9,3 +9,24 @@
 - [Your first model](docs/hello-world/hello-world.md). A hello-world example model for `fact-streams`.
 <!-- - [Crafting commands](docs\crafting-commands\crafting-commands.md). Describes a pragmatic approach to building real-world database models with `fact-streams`. It covers runtime type validation, type coercion and integration with external systems. -->
 <!-- - [Read views](). Describes a pragmatic approach to writing the read-views of your models -->
+
+## Installation
+
+With npm:
+```
+npm i fact-streams
+```
+
+With pnpm:
+```
+pnpm i fact-streams
+```
+
+With yarn:
+```
+yarn add fact-streams
+```
+
+## Usage
+
+For usage, check the "hello world" example in the [documentation](/docs/hello-world/).
