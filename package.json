@@ -30,7 +30,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "mongodb": "^5.8.1"
+    "mongodb": "^6.9.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.5",
